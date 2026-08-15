@@ -1,40 +1,34 @@
 {
   "name": "qa-automation-assessment",
   "version": "1.0.0",
-  "description": "Mid-level QA Automation Engineer Assessment - Playwright UI & Postman API",
-  "main": "index.js",
+  "description": "Mid-level QA Automation Engineer Assessment - Playwright UI and Postman API",
   "type": "module",
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "test:headed": "playwright test --headed",
-    "test:single": "playwright test --grep @smoke",
-    "test:chrome": "playwright test --project=chromium",
-    "test:firefox": "playwright test --project=firefox",
-    "test:webkit": "playwright test --project=webkit",
+    "test:chromium": "playwright test --project=chromium",
     "report": "playwright show-report ./results/playwright",
-    "newman": "newman run postman/RestfulAPI.postman_collection.json -e postman/RestfulAPI.postman_environment.json -r html,cli --reporter-html-export ./results/newman-report.html",
+    "newman": "newman run postman/RestfulAPI.postman_collection.json -e postman/RestfulAPI.postman_environment.json -r cli,html --reporter-html-export ./results/newman-report.html",
     "newman:debug": "newman run postman/RestfulAPI.postman_collection.json -e postman/RestfulAPI.postman_environment.json --verbose",
     "test:all": "npm run test && npm run newman",
     "install:browsers": "playwright install",
     "codegen": "playwright codegen https://www.saucedemo.com"
   },
   "keywords": [
-    "QA",
+    "qa",
     "automation",
     "playwright",
     "postman",
+    "newman",
     "testing"
   ],
-  "author": "Your Name",
+  "author": "Beshoy Nader",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "newman": "^6.0.0",
     "newman-reporter-html": "^1.0.5"
-  },
-  "dependencies": {
-    "dotenv": "^16.3.1"
   }
 }
