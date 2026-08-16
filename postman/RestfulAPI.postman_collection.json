@@ -83,7 +83,7 @@
       "response": []
     },
     {
-      "name": "2. GET - Retrieve All Objects",
+      "name": "2. GET - Retrieve Created Object",
       "event": [
         {
           "listen": "test",
@@ -94,37 +94,34 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "// Verify response is an array",
-              "pm.test(\"Response is an array of objects\", function () {",
+              "// Verify response is an object (not an array)",
+              "pm.test(\"Response is a single object\", function () {",
               "    let jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.be.an('array');",
-              "    pm.expect(jsonData.length).to.be.greaterThan(0);",
+              "    pm.expect(jsonData).to.be.an('object');",
               "});",
               "",
-              "// Verify the listed objects have the expected structure",
-              "pm.test(\"Listed objects have required fields\", function () {",
+              "// Verify the returned object has the correct ID",
+              "pm.test(\"Retrieved object ID matches created object ID\", function () {",
               "    let jsonData = pm.response.json();",
-              "    let hasValidItems = jsonData.every(obj => obj && obj.id && obj.name);",
-              "    pm.expect(hasValidItems).to.be.true;",
+              "    let createdId = pm.collectionVariables.get('object_id');",
+              "    pm.expect(jsonData.id).to.equal(createdId);",
               "});",
               "",
-              "// Verify object structure in the array",
-              "pm.test(\"Objects in array have required fields\", function () {",
+              "// Verify the returned object name matches what was created",
+              "pm.test(\"Retrieved object name matches created name\", function () {",
               "    let jsonData = pm.response.json();",
-              "    let firstObj = jsonData[0];",
-              "    pm.expect(firstObj).to.have.property('id');",
-              "    pm.expect(firstObj).to.have.property('name');",
+              "    let createdName = pm.collectionVariables.get('object_name');",
+              "    pm.expect(jsonData.name).to.equal(createdName);",
               "});",
               "",
-              "// Verify data property exists on list items when present",
-              "pm.test(\"Data property exists and is an object where supplied\", function () {",
+              "// Verify object has expected data properties",
+              "pm.test(\"Retrieved object contains expected data properties\", function () {",
               "    let jsonData = pm.response.json();",
-              "    let itemWithData = jsonData.find(obj => obj && obj.data !== undefined);",
-              "    if (itemWithData) {",
-              "        pm.expect(itemWithData.data).to.be.an('object');",
-              "    } else {",
-              "        pm.expect(true).to.be.true;",
-              "    }",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData.data).to.have.property('year');",
+              "    pm.expect(jsonData.data).to.have.property('price');",
+              "    pm.expect(jsonData.data).to.have.property('CPU model');",
+              "    pm.expect(jsonData.data).to.have.property('HDD storage');",
               "});"
             ]
           }
@@ -134,9 +131,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/objects",
+          "raw": "{{base_url}}/objects/{{object_id}}",
           "host": ["{{base_url}}"],
-          "path": ["objects"]
+          "path": ["objects", "{{object_id}}"]
         }
       },
       "response": []
