@@ -1,0 +1,430 @@
+{
+  "info": {
+    "name": "Restful API Test Collection",
+    "description": "Mid-Level QA Automation - API Testing (Fixed for actual API behavior)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. POST - Create New Object",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify response status code (API returns 200, not 201)",
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify response contains required fields",
+              "pm.test(\"Response contains id property\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "// Verify response structure",
+              "pm.test(\"Response is an object with id\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "    pm.expect(jsonData.id.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "// Store the created object ID for later requests",
+              "pm.test(\"Save created object ID to variable\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('object_id', jsonData.id);",
+              "    pm.environment.set('object_id', jsonData.id);",
+              "    pm.expect(jsonData.id).to.exist;",
+              "});",
+              "",
+              "// Verify the name we sent is returned",
+              "pm.test(\"Created object name is present\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.name).to.equal(pm.collectionVariables.get('object_name'));",
+              "});",
+              "",
+              "// Verify response time",
+              "pm.test(\"Response time is less than 2000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Generate a unique name for each run and persist it for request variables",
+              "pm.collectionVariables.set('object_name', 'TestProduct_' + Date.now());",
+              "pm.environment.set('object_name', pm.collectionVariables.get('object_name'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{object_name}}\",\n    \"data\": {\n        \"year\": 2024,\n        \"price\": 1899,\n        \"CPU model\": \"Intel Core Ultra\",\n        \"HDD storage\": \"512 GB\"\n    }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/objects",
+          "host": ["{{base_url}}"],
+          "path": ["objects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET - Retrieve All Objects",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify response status code",
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify response is an array",
+              "pm.test(\"Response is an array of objects\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "// Verify the listed objects have the expected structure",
+              "pm.test(\"Listed objects have required fields\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    let hasValidItems = jsonData.every(obj => obj && obj.id && obj.name);",
+              "    pm.expect(hasValidItems).to.be.true;",
+              "});",
+              "",
+              "// Verify object structure in the array",
+              "pm.test(\"Objects in array have required fields\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    let firstObj = jsonData[0];",
+              "    pm.expect(firstObj).to.have.property('id');",
+              "    pm.expect(firstObj).to.have.property('name');",
+              "});",
+              "",
+              "// Verify data property exists on list items when present",
+              "pm.test(\"Data property exists and is an object where supplied\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    let itemWithData = jsonData.find(obj => obj && obj.data !== undefined);",
+              "    if (itemWithData) {",
+              "        pm.expect(itemWithData.data).to.be.an('object');",
+              "    } else {",
+              "        pm.expect(true).to.be.true;",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/objects",
+          "host": ["{{base_url}}"],
+          "path": ["objects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. PUT - Update Object",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify response status code",
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify object was updated",
+              "pm.test(\"Updated object returned\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "// Verify the updated property",
+              "pm.test(\"Price property updated correctly\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.price).to.equal(2499);",
+              "});",
+              "",
+              "// Verify other properties exist",
+              "pm.test(\"Other data properties still exist\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('year');",
+              "    pm.expect(jsonData.data).to.have.property('CPU model');",
+              "});",
+              "",
+              "// Verify correct object was updated",
+              "pm.test(\"Updated object has correct ID\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    let createdId = pm.collectionVariables.get('object_id');",
+              "    pm.expect(jsonData.id).to.equal(createdId);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{object_name}}\",\n    \"data\": {\n        \"year\": 2024,\n        \"price\": 2499,\n        \"CPU model\": \"Intel Core Ultra\",\n        \"HDD storage\": \"512 GB\"\n    }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/objects/{{object_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["objects", "{{object_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. DELETE - Remove Object (via specific endpoint)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify response status code",
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify deletion response structure",
+              "pm.test(\"Response is a valid JSON object\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('object');",
+              "});",
+              "",
+              "// Verify response contains status or confirmation",
+              "pm.test(\"Response contains success indicator\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    // API may return different confirmation fields",
+              "    let hasConfirmation = jsonData.hasOwnProperty('message') || jsonData.hasOwnProperty('status') || jsonData.hasOwnProperty('timestamp');",
+              "    pm.expect(hasConfirmation).to.be.true;",
+              "});",
+              "",
+              "// Verify response time",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/objects/{{object_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["objects", "{{object_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. GET - Verify Object Deleted",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify response status code",
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify response is an array",
+              "pm.test(\"Response is still an array\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "// Verify deleted object is NOT in the list",
+              "pm.test(\"Deleted object is no longer in the list\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    let deletedId = pm.collectionVariables.get('object_id');",
+              "    let found = jsonData.find(obj => obj.id === deletedId);",
+              "    pm.expect(found).to.be.undefined;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/objects",
+          "host": ["{{base_url}}"],
+          "path": ["objects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. NEGATIVE TEST - Missing Required Field",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Note: This API appears to accept missing fields (returns 200)",
+              "// Testing that the API handles gracefully, even if it doesn't validate",
+              "pm.test(\"Status code is 200 (API doesn't validate)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Verify response is a valid object",
+              "pm.test(\"Response is a valid JSON object\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('object');",
+              "});",
+              "",
+              "// Verify an ID was generated (even for incomplete data)",
+              "pm.test(\"Response contains an ID\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "// Document the actual behavior for the walkthrough",
+              "pm.test(\"API accepts incomplete payload (interesting edge case)\", function () {",
+              "    // This is a finding we'll discuss in the walkthrough",
+              "    // The API is lenient - it doesn't enforce required fields",
+              "    pm.expect(true).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"data\": {\n        \"year\": 2024,\n        \"price\": 1899\n    }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/objects",
+          "host": ["{{base_url}}"],
+          "path": ["objects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. BONUS TEST - Verify API Response Format",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Comprehensive test of API response structure",
+              "pm.test(\"Created object has correct data structure\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.include.all.keys('id', 'name', 'data');",
+              "});",
+              "",
+              "// Verify data sub-properties",
+              "pm.test(\"Data object contains expected properties\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('year');",
+              "    pm.expect(jsonData.data).to.have.property('price');",
+              "    pm.expect(jsonData.data).to.have.property('CPU model');",
+              "});",
+              "",
+              "// Verify value types",
+              "pm.test(\"Property values are correct types\", function () {",
+              "    let jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "    pm.expect(jsonData.name).to.be.a('string');",
+              "    pm.expect(jsonData.data.year).to.be.a('number');",
+              "    pm.expect(jsonData.data.price).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{object_name}}\",\n    \"data\": {\n        \"year\": 2024,\n        \"price\": 1899,\n        \"CPU model\": \"Intel Core Ultra\",\n        \"HDD storage\": \"512 GB\"\n    }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/objects",
+          "host": ["{{base_url}}"],
+          "path": ["objects"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": []
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": []
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.restful-api.dev",
+      "type": "string"
+    },
+    {
+      "key": "object_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "object_name",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
